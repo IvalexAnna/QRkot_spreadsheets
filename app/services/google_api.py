@@ -1,12 +1,10 @@
 from datetime import datetime
+from typing import List, Tuple
 
 from aiogoogle import Aiogoogle
 
 from app.core.config import settings
-
 from . import constants
-
-FORMAT = "%Y/%m/%d %H:%M:%S"
 
 
 async def spreadsheets_create(wrapper_services: Aiogoogle) -> str:
@@ -14,7 +12,7 @@ async def spreadsheets_create(wrapper_services: Aiogoogle) -> str:
     Создает новую Google-таблицу с заданными параметрами и возвращает её ID.
     """
 
-    now_date_time = datetime.now().strftime(FORMAT)
+    now_date_time = datetime.now().strftime("%Y/%m/%d %H:%M:%S")
 
     service = await wrapper_services.discover("sheets", "v4")
 
@@ -23,7 +21,7 @@ async def spreadsheets_create(wrapper_services: Aiogoogle) -> str:
             "title": constants.SPREADSHEET_TITLE_TEMPLATE.format(
                 now_date_time
             ),
-            "locale": "ru_RU",
+            "locale": constants.LOCALE,
         },
         "sheets": [
             {
@@ -65,9 +63,11 @@ async def set_user_permissions(
 
 
 async def spreadsheets_update_value(
-    spreadsheetid: str, projects: list, wrapper_services: Aiogoogle
+    spreadsheetid: str,
+    projects: List[Tuple[str, str, str]],
+    wrapper_services: Aiogoogle,
 ) -> None:
-    now_date_time = datetime.now().strftime(FORMAT)
+    now_date_time = datetime.now().strftime("%Y/%m/%d %H:%M:%S")
     service = await wrapper_services.discover("sheets", "v4")
 
     table_values = [
@@ -76,8 +76,10 @@ async def spreadsheets_update_value(
         constants.TABLE_COLUMNS,
     ]
 
-    for project in projects:
-        new_row = [str(project[0]), str(project[1]), str(project[2])]
+    for project_name_1, project_name_2, project_name_3 in projects:
+        new_row = [str(project_name_1),
+                   str(project_name_2),
+                   str(project_name_3)]
         table_values.append(new_row)
 
     update_body = {"majorDimension": "ROWS", "values": table_values}
